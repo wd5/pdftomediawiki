@@ -29,6 +29,7 @@ finally:
 file = file.replace('&nbsp;', ' ').replace('-<br>\n', '');
 file.replace('-<br>\n', '');
 
+file = re.sub(pattern = '(<A name=\d+></a>)(<IMG .*)\n(.*<br>\n.*)<br>', repl =  '\\1\\3<br>\n \2<br>', string = file )
 file = re.sub(pattern = '<A name=\d+></a>Глава[0-9A-Za-z\s]+(.*?)<b>', repl =  '<title> \\1</title>\n', string = file, flags=re.S )
 
 file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = file )
@@ -38,15 +39,14 @@ for d in data:
     title_index = d.find('</title>')
     print 'title' + d[0:title_index]
     text = d[title_index+8:d.__len__()]
-    print 'text' + text[:50]
+    # print 'text' + text[:50]
 
     i = re.compile('<img src="(?P<source>[^"]+)">', re.I)
     images = i.findall(text)
 
-    for image in images:
-        print 'Image = ' + image
+    # for image in images:
+    #    print 'Image = ' + image
 
-print file
 sys.exit(0);
 
 
