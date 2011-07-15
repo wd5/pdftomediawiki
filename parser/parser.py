@@ -149,5 +149,5 @@ class Parser(object):
 
         print "Загруженно страниц: %d " % page_count            
 
-    def __del__(self):
-        # os.system('rm -rf %s/*' % tmpdir )
+    #def __del__(self):
+    # os.system('rm -rf %s/*' % tmpdir )
