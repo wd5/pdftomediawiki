@@ -12,8 +12,8 @@ from wikitools import wikifile
 pdftohtml = '/usr/bin/pdftohtml'
 tmpdir = 'html'
 htmlname = 's'
-# api_url = 'http://wikidharma.com/api.php'
-api_url = 'http://mediawiki.loc/api.php'
+api_url = 'http://wikidharma.com/api.php'
+# api_url = 'http://mediawiki.loc/api.php'
 
 class Parser(object):
 
@@ -45,8 +45,8 @@ class Parser(object):
         self.getdata()
 
     def login(self):
-        # self.logged = self.site.login('Wikiadmin', '9MdVYsp', True)
-        self.logged = self.site.login('Wikiadmin', 'gfhjkm', True)
+        self.logged = self.site.login('Wikiadmin', '9MdVYsp', True)
+        # self.logged = self.site.login('Wikiadmin', 'gfhjkm', True)
         if self.logged is False:
             sys.exit('login failed')
 
