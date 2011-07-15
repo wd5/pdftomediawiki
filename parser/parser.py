@@ -68,11 +68,6 @@ class Parser(object):
         finally:
             self.fhandle.close()
 
-        self.file = re.sub('<A name=\d+></a>', '', self.file)
-        self.intro = re.sub('<A name=\d+></a>', '', self.intro)
-        self.file = re.sub('<i><b>\d+</b></i><br>\n', '', self.file)
-        self.intro = re.sub('<i><b>\d+</b></i><br>\n', '', self.intro)
-
 
     def title(self, title):
         return re.sub('<[^>]+?>','', title.replace('\n', '').replace('»', '').replace('«','')).strip().lower()
@@ -116,13 +111,6 @@ class Parser(object):
         # Лайя йога в традиции сиддхов
         # p = re.compile('((?P<title><i><b>[абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+</b></i><br>\n){1,5})(?P<text>.*?)Глава [A-Z0-9\s]+</b>', re.S | re.I)
         
-        # Путь божественной гордости
-        self.file = re.sub(pattern = '(<i><b>([абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+)</b></i><br>\n)', repl =  '<title> \\2</title>\n', string = self.file )
-        self.file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = self.file )
-        data = self.file.split('<title>');
-
-        # Путь эволюции
-        """
         self.file = re.sub(pattern = '(<i><b>([абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+)</b></i><br>\n)', repl =  '<title> \\2</title>\n', string = self.file )
         self.file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = self.file )
 
@@ -131,19 +119,20 @@ class Parser(object):
 
         self.file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = self.file )
         data = self.file.split('<title>');
-        """
 
         self.login()
         page_count = 0;
 
         for d in data:
-            title_index = d.find('</title>')
 
-            if title_index != -1:
-                text = d[title_index+8:d.__len__()]
-                page1 = page.Page(site=self.site, title='%s' % self.title(d[0:title_index]))
-                page1.edit(newtext='%s [[Категория:Лайя йога]] [[Категория:%s]]' % (self.html2wikimarkup(text), self.book))
-                print "Page = %s, info: %s" % (self.title(d[0:title_index]), self.html2wikimarkup(text)[:10])
+            slice = d.split('</title>');
+
+            try:
+                title = slice[0]
+                text = slice[1]
+                print "Page = %s, info: %s" % (self.title(title), self.html2wikimarkup(text)[:100])
+                page1 = page.Page(site=self.site, title='%s' % self.title(title))
+                page1.edit(skipmd5 = True, newtext='%s [[Категория:Лайя йога]] [[Категория:%s]]' % (self.html2wikimarkup(text), self.book))
                 page_count += 1;
 
                 i = re.compile('<img src="(?P<source>[^"]+)">', re.I)
@@ -157,11 +146,11 @@ class Parser(object):
                     page1.edit(newtext='Иллюстрация из книги [[Категория:%s]]'%(self.book))
                     print "Image = Файл:%s" % (image)
                     print 'Image = ' + image
-            else:
-                print "Not a page = %s, info: %s, index: %d" % (self.title(d[0:10]), self.html2wikimarkup(d)[10:100], title_index)
+            except IndexError:
+                print "Not a page = %s " % (self.title(slice[0]) )
 
 
-        print "Загруженно страниц: %d " % page_count  
+        print "Загруженно страниц: %d " % page_count            
 
     #def __del__(self):
     # os.system('rm -rf %s/*' % tmpdir )
