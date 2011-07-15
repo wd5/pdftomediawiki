@@ -12,6 +12,7 @@ from wikitools import wikifile
 pdftohtml = '/usr/bin/pdftohtml'
 tmpdir = 'html'
 htmlname = 's'
+# api_url = 'http://wikidharma.com/api.php'
 api_url = 'http://mediawiki.loc/api.php'
 
 class Parser(object):
@@ -36,7 +37,7 @@ class Parser(object):
 
     def pdftohtml(self):
         try:
-            os.system('%s "%s" "%s/%s.html"' % (pdftohtml, self.filename,  tmpdir, self.book))
+            # os.system('%s "%s" "%s/%s.html"' % (pdftohtml, self.filename,  tmpdir, self.book))
             self.fhandle = open('%s/%ss.html' % (tmpdir, self.book))
         except:
             sys.exit("Error in conver or open converted file %s/%ss.html" % (tmpdir, self.book))
@@ -44,6 +45,7 @@ class Parser(object):
         self.getdata()
 
     def login(self):
+        # self.logged = self.site.login('Wikiadmin', '9MdVYsp', True)
         self.logged = self.site.login('Wikiadmin', 'gfhjkm', True)
         if self.logged is False:
             sys.exit('login failed')
@@ -55,6 +57,7 @@ class Parser(object):
         try:
             for line in self.fhandle:
 
+                # line = line.decode('utf8').encode('cp1251').decode('cp1251')
                 if line.find('<hr>') != -1:
                     i += 1
                 if i < self.end:
@@ -70,13 +73,14 @@ class Parser(object):
         self.file = re.sub('<i><b>\d+</b></i><br>\n', '', self.file)
         self.intro = re.sub('<i><b>\d+</b></i><br>\n', '', self.intro)
 
+
     def title(self, title):
         return re.sub('<[^>]+?>','', title.replace('\n', '').replace('»', '').replace('«','')).strip().lower()
 
     def html2wikimarkup(self, text):
         text = re.sub('<IMG src="%s/([^"]+)">'%tmpdir, '[[Файл:\\1|thumb]]',  text)
         text.replace('<i>', "''").replace('</i>', "''")
-        return re.sub('<[^>]+?>','', text.replace('<b>', '== ').replace('</b>', ' ==').replace('&nbsp;', ''))
+        return re.sub('<[^>]+?>','', text.replace('<b>', '== ').replace('</b>', ' ==\n').replace('&nbsp;', '')).strip()
 
     def createbook(self):
 
@@ -86,6 +90,11 @@ class Parser(object):
         self.intro = self.html2wikimarkup(self.intro)
 
         self.login()
+
+        """
+        self.intro = re.sub('<A name=\d+></a>', '', self.intro)
+        self.intro = re.sub('<i><b>\d+</b></i><br>\n', '', self.intro)
+        """
 
         file = wikifile.File(wiki=self.site, title=self.book + '.pdf')
         f = open(self.filename)
@@ -108,16 +117,21 @@ class Parser(object):
         # p = re.compile('((?P<title><i><b>[абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+</b></i><br>\n){1,5})(?P<text>.*?)Глава [A-Z0-9\s]+</b>', re.S | re.I)
         
         # Путь божественной гордости
-        """
-        p = re.compile('((?P<title><i><b>[абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+</b></i><br>\n){1,5})(?P<text>.*?)<i><b>', re.S | re.I)
-        links = p.findall(self.file)
-        i = re.compile('<img src="(?P<source>[^"]+)">', re.I)
-        images = i.findall(self.file)
-        """
-
         self.file = re.sub(pattern = '(<i><b>([абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+)</b></i><br>\n)', repl =  '<title> \\2</title>\n', string = self.file )
         self.file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = self.file )
         data = self.file.split('<title>');
+
+        # Путь эволюции
+        """
+        self.file = re.sub(pattern = '(<i><b>([абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ—«».,\s-]+)</b></i><br>\n)', repl =  '<title> \\2</title>\n', string = self.file )
+        self.file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = self.file )
+
+        self.file = re.sub(pattern = '(<A name=\d+></a>)(<IMG .*)\n(.*<br>\n.*)<br>', repl =  '\\1\\3<br>\n \2<br>', string = self.file )
+        self.file = re.sub(pattern = '<A name=\d+></a>Глава[0-9A-Za-z\s]+(.*?)<b>', repl =  '<title> \\1</title>\n', string = self.file, flags=re.S )
+
+        self.file = re.sub(pattern = '</title>\n.*<title>', repl =  '', string = self.file )
+        data = self.file.split('<title>');
+        """
 
         self.login()
         page_count = 0;
@@ -147,7 +161,7 @@ class Parser(object):
                 print "Not a page = %s, info: %s, index: %d" % (self.title(d[0:10]), self.html2wikimarkup(d)[10:100], title_index)
 
 
-        print "Загруженно страниц: %d " % page_count            
+        print "Загруженно страниц: %d " % page_count  
 
     #def __del__(self):
     # os.system('rm -rf %s/*' % tmpdir )
